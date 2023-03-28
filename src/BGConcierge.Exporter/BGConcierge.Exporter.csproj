@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <ProjectReference Include="..\BGConcierge.BGG\BGConcierge.BGG.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="refit" Version="6.3.2" />
-    <PackageReference Include="Refit.Xml" Version="6.3.2" />
-  </ItemGroup>
 
 </Project>
