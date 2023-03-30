@@ -15,4 +15,9 @@ public class Statistics
     public int Comments { get; set; }
     public int Weights { get; set; }
     public double AverageWeight { get; set; }
+
+    public Statistics()
+    {
+        Ranks = new List<Rank>();
+    }
 }
