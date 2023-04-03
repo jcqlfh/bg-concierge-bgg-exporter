@@ -22,13 +22,26 @@ signInWithEmailAndPassword(auth, process.env.FIREBASE_USER, process.env.FIREBASE
     const user = userCredential.user;
 
     database.forEach(function(obj) {
-      addDoc(collection(db, "boardgames"), {
+      addDoc(collection(db, "boardgames", obj.Id), {
         ...obj
       }).then(function(docRef) {
-        console.log("Document written with ID: ", docRef.id);
+        console.log("Boardgame written with ID: ", docRef.id);
+
+        const ranks = obj.Statistics?.Ranks ?? [];
+        
+        ranks.forEach(rank =>
+          addDoc(collection(db, rank.Name, obj.Id), {
+            ...rank
+          }).then(function(docRef) {
+            console.log("Rank written with ID: ", docRef.id);
+          })
+          .catch(function(error) {
+            console.error("Error adding rank: ", error);
+          })
+        )
       })
       .catch(function(error) {
-        console.error("Error adding document: ", error);
+        console.error("Error adding boardgame: ", error);
       });
     });
     return;

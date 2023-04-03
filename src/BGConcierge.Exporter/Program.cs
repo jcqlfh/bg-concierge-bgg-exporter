@@ -98,7 +98,7 @@ internal class Program
                                 // <link type="boardgamecategory" id="1021" value="Economic"/>
                                 boardgame.Categories.Add(child.Attributes["value"]?.Value);
                             }
-                            else if (child.Name == "link" && child.Attributes["type"]?.Value == "boardgamecategory")
+                            else if (child.Name == "link" && child.Attributes["type"]?.Value == "boardgamemechanic")
                             {
                                 // <link type="boardgamemechanic" id="2916" value="Alliances"/>
                                 boardgame.Mechanics.Add(child.Attributes["value"]?.Value);
