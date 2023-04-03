@@ -1,34 +1,31 @@
 ﻿using BGConcierge.BGG;
 using BGConcierge.BGG.Models;
 using System.Xml;
-using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using Polly;
 
 internal class Program
 {
     private static async Task Main(string[] args)
     {
+        var startIndex = Convert.ToInt32(args != null && args.Length > 0 ? args[0] : "0");
+        var endIndex = Convert.ToInt32(args != null && args.Length > 1 ? args[1] : "400000");
+
         var startTime = DateTime.Now;
         var page = 200;
         List<Boardgame> boardgames = new List<Boardgame>();
         using (var proxy = BGGClientFactory.GetXmlApi2())
         {
             var random = new Random();
-            for( int i = 0; i < 400000; i+=page)
+            for( int i = startIndex; i < endIndex; i+=page)
             {
-                Console.WriteLine($"{(DateTime.Now-startTime).ToString("c")} {(decimal)i/400000m*100}% Total:{boardgames.Count}");
-                XmlDocument xml = null;
-                
-                try
-                {
-                    xml = await proxy.GetThings(new List<int>(Enumerable.Range(i, page)));
-                }
-                catch
-                {
-                    Thread.Sleep(10000);
-                    xml = await proxy.GetThings(new List<int>(Enumerable.Range(i, page)));
-                }
+                Console.WriteLine($"{(DateTime.Now-startTime).ToString("c")} {(decimal)i/endIndex*100}% Total:{boardgames.Count}");
+
+                var xml = await Policy
+                    .Handle<Refit.ApiException>()
+                    .WaitAndRetryAsync(10, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+                    .ExecuteAsync(async () =>
+                        await proxy.GetThings(new List<int>(Enumerable.Range(i, page))));
 
                 if (xml.DocumentElement?.ChildNodes?.Count == 0)
                     break;
