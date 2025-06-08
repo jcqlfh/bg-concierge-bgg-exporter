@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Xml;
 using BGConcierge.BGG;
 using BGConcierge.BGG.Models;
@@ -15,12 +16,21 @@ internal class Program
         var startTime = DateTime.Now;
         var page = 20;
         List<Boardgame> boardgames = new List<Boardgame>();
+        var jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true
+        };
+
+        File.WriteAllText("./database.json", "[");
+        bool isFirstItem = true; // Flag para controlar a primeira entrada
         using (var proxy = BGGClientFactory.GetXmlApi())
         {
 
             var random = new Random();
             for (int i = startIndex; i < endIndex; i += page)
             {
+                boardgames.Clear();
+                Console.WriteLine($"Start: {i} End: {endIndex}");
                 Console.WriteLine($"{(DateTime.Now - startTime).ToString("c")} {(decimal)i / endIndex * 100}% Total:{boardgames.Count}");
                 Console.WriteLine($"Requesting {i} to {i + page - 1}...");
                 var xml = await Policy
@@ -35,8 +45,7 @@ internal class Program
                 Parallel.ForEach(xml.DocumentElement.ChildNodes.Cast<XmlNode>().Where(n => n is XmlElement), node =>
                 {
                     var boardgame = new Boardgame();
-                    boardgame.Id = Convert.ToInt32(node.Attributes["objectid"]?.Value);
-
+                    boardgame.Id = Int32.TryParse(node.Attributes["objectid"]?.Value, out var id) ? id : -1;
                     try
                     {
                         foreach (XmlElement child in node.ChildNodes.Cast<XmlNode>().Where(n => n is XmlElement))
@@ -55,31 +64,31 @@ internal class Program
                             }
                             else if (child.Name == "yearpublished")
                             {
-                                boardgame.YearPublished = Convert.ToInt32(child.InnerText);
+                                boardgame.YearPublished = Int32.TryParse(child.InnerText, out var year) ? year : -1;
                             }
                             else if (child.Name == "minplayers")
                             {
-                                boardgame.MinPlayers = Convert.ToInt32(child.InnerText);
+                                boardgame.MinPlayers = Int32.TryParse(child.InnerText, out var minPlayers) ? minPlayers : -1;
                             }
                             else if (child.Name == "maxplayers")
                             {
-                                boardgame.MaxPlayers = Convert.ToInt32(child.InnerText);
+                                boardgame.MaxPlayers = Int32.TryParse(child.InnerText, out var maxPlayers) ? maxPlayers : -1;
                             }
                             else if (child.Name == "playingtime")
                             {
-                                boardgame.PlayingTime = Convert.ToInt32(child.InnerText);
+                                boardgame.PlayingTime = Int32.TryParse(child.InnerText, out var playingTime) ? playingTime : -1;
                             }
                             else if (child.Name == "minplaytime")
                             {
-                                boardgame.MinPlayTime = Convert.ToInt32(child.InnerText);
+                                boardgame.MinPlayTime = Int32.TryParse(child.InnerText, out var minPlayTime) ? minPlayTime : -1;
                             }
                             else if (child.Name == "maxplaytime")
                             {
-                                boardgame.MaxPlayTime = Convert.ToInt32(child.InnerText);
+                                boardgame.MaxPlayTime = Int32.TryParse(child.InnerText, out var maxPlayTime) ? maxPlayTime : -1;
                             }
                             else if (child.Name == "age")
                             {
-                                boardgame.MaxPlayTime = Convert.ToInt32(child.InnerText);
+                                boardgame.MinAge = Int32.TryParse(child.InnerText, out var age) ? age : -1;
                             }
                             else if (child.Name == "boardgamecategory")
                             {
@@ -100,62 +109,62 @@ internal class Program
                                     if (rating.Name == "usersrated")
                                     {
                                         // <usersrated value="5621"/>
-                                        statistics.UsersRated = Convert.ToInt32(rating.InnerText);
+                                        statistics.UsersRated = Int32.TryParse(rating.InnerText, out var usersRated) ? usersRated : -1;
                                     }
                                     else if (rating.Name == "average")
                                     {
                                         //  <average value="7.60363"/>
-                                        statistics.Avarage = Convert.ToDouble(rating.InnerText, CultureInfo.InvariantCulture);
+                                        statistics.Avarage = Double.TryParse(rating.InnerText, CultureInfo.InvariantCulture, out var average) ? average : -1.0;
                                     }
                                     else if (rating.Name == "bayesaverage")
                                     {
                                         // <bayesaverage value="7.06781"/>
-                                        statistics.BayesAverage = Convert.ToDouble(rating.InnerText, CultureInfo.InvariantCulture);
+                                        statistics.BayesAverage = Double.TryParse(rating.InnerText, CultureInfo.InvariantCulture, out var bayesaverage) ? bayesaverage : -1.0;
                                     }
                                     else if (rating.Name == "stddev")
                                     {
                                         // <stddev value="1.57315"/>
-                                        statistics.StandardDeviation = Convert.ToDouble(rating.InnerText, CultureInfo.InvariantCulture);
+                                        statistics.StandardDeviation = Double.TryParse(rating.InnerText, CultureInfo.InvariantCulture, out var stddev) ? stddev : -1.0;
                                     }
                                     else if (rating.Name == "median")
                                     {
                                         // <median value="0"/>
-                                        statistics.Median = Convert.ToDouble(rating.InnerText, CultureInfo.InvariantCulture);
+                                        statistics.Median = Double.TryParse(rating.InnerText, CultureInfo.InvariantCulture, out var median) ? median : -1.0;
                                     }
                                     else if (rating.Name == "owned")
                                     {
                                         // <owned value="7919"/>
-                                        statistics.Owned = Convert.ToInt32(rating.InnerText);
+                                        statistics.Owned = Int32.TryParse(rating.InnerText, out var owned) ? owned : -1;
                                     }
                                     else if (rating.Name == "trading")
                                     {
                                         // <trading value="250"/>
-                                        statistics.Trading = Convert.ToInt32(rating.InnerText);
+                                        statistics.Trading = Int32.TryParse(rating.InnerText, out var trading) ? trading : -1;
                                     }
                                     else if (rating.Name == "wanting")
                                     {
                                         // <wanting value="510"/>
-                                        statistics.Wanting = Convert.ToInt32(rating.InnerText);
+                                        statistics.Wanting = Int32.TryParse(rating.InnerText, out var wanting) ? wanting : -1;
                                     }
                                     else if (rating.Name == "wishing")
                                     {
                                         // <wishing value="2118"/>
-                                        statistics.Whishing = Convert.ToInt32(rating.InnerText);
+                                        statistics.Whishing = Int32.TryParse(rating.InnerText, out var wishing) ? wishing : -1;
                                     }
                                     else if (rating.Name == "numcomments")
                                     {
                                         // <numcomments value="2118"/>
-                                        statistics.Comments = Convert.ToInt32(rating.InnerText);
+                                        statistics.Comments = Int32.TryParse(rating.InnerText, out var numcomments) ? numcomments : -1;
                                     }
                                     else if (rating.Name == "numweights")
                                     {
                                         // <numweights value="2118"/>
-                                        statistics.Weights = Convert.ToInt32(rating.InnerText);
+                                        statistics.Weights = Int32.TryParse(rating.InnerText, out var numweights) ? numweights : -1;
                                     }
                                     else if (rating.Name == "averageweight")
                                     {
                                         // <averageweight value="2118"/>
-                                        statistics.AverageWeight = Convert.ToDouble(rating.InnerText, CultureInfo.InvariantCulture);
+                                        statistics.AverageWeight = Double.TryParse(rating.InnerText, CultureInfo.InvariantCulture, out var averageweight) ? averageweight : -1.0;
                                     }
                                     else if (rating.Name == "ranks")
                                     {
@@ -165,7 +174,7 @@ internal class Program
                                             // <rank type="subtype" id="1" name="boardgame" friendlyname="Board Game Rank" value="368" bayesaverage="7.06781"/>
                                             statistics.Ranks.Add(new Rank()
                                             {
-                                                Id = Convert.ToInt32(rank.Attributes["id"]?.Value ?? "-1"),
+                                                Id = Int32.TryParse(rank.Attributes["id"]?.Value, out var numweights) ? numweights : -1,
                                                 Name = rank.Attributes["name"]?.Value,
                                                 Type = rank.Attributes["type"]?.Value,
                                                 FriendlyName = rank.Attributes["friendlyname"]?.Value,
@@ -185,11 +194,13 @@ internal class Program
                     boardgames.Add(boardgame);
                 });
 
-                Thread.Sleep(random.Next(1000, 2000));
+                foreach (var boardgame in boardgames)
+                {
+                    File.AppendAllText("./database.json", $"{(isFirstItem ? string.Empty : ",")}\n{JsonSerializer.Serialize(boardgame, jsonOptions)}");
+                    isFirstItem = false;
+                }
             }
-
-            string jsonString = JsonSerializer.Serialize(boardgames);
-            File.WriteAllText("./database.json", jsonString);
         }
+        File.AppendAllText("./database.json", "]");
     }
 }
