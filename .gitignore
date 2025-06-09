@@ -1,4 +1,4 @@
-database.json
+database*.json
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,node
 
@@ -164,3 +164,4 @@ dist
 bin/
 obj/
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,node
+src/BGConcierge.Seeder/serviceAccount.json
